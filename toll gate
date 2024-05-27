@@ -1,0 +1,66 @@
+#include <Servo.h>
+
+Servo myservo;   
+
+int pos = 0;
+int cm = 0;
+const int greenLEDPin = 8;
+const int redLEDPin = 13;
+
+long readUltrasonicDistance(int triggerPin, int echoPin) {
+  pinMode(triggerPin, OUTPUT); 
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+  pinMode(echoPin, INPUT);
+  return pulseIn(echoPin, HIGH);
+}
+
+void setup() {
+  pinMode(greenLEDPin, OUTPUT);
+  pinMode(redLEDPin, OUTPUT);
+  digitalWrite(greenLEDPin, LOW);
+  digitalWrite(redLEDPin, LOW);
+  
+  myservo.attach(9); 
+  Serial.begin(9600);
+}
+
+void loop() {
+  cm = 0.01723 * readUltrasonicDistance(6, 7);
+
+  if (cm < 30) {
+    Serial.print(cm);
+    Serial.println("cm");
+    
+    // Blink green LED to indicate door is opening
+    for (int i = 0; i < 10; i++) {
+      digitalWrite(greenLEDPin, HIGH);
+      delay(100);
+      digitalWrite(greenLEDPin, LOW);
+      delay(100);
+    }
+    
+    for (pos = 0; pos <= 100; pos += 1) { 
+      myservo.write(pos);             
+      delay(15);                       
+    }
+    delay(3000);
+
+    for (pos = 100; pos >= 0; pos -= 1) { 
+      myservo.write(pos);
+      delay(10);                                     
+    }
+    delay(15); 
+  } else {
+    // Blink red LED to indicate door is not opening
+    for (int i = 0; i < 5; i++) {
+      digitalWrite(redLEDPin, HIGH);
+      delay(200);
+      digitalWrite(redLEDPin, LOW);
+      delay(200);
+    }
+  }
+}
